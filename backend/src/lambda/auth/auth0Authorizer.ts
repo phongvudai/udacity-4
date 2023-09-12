@@ -17,39 +17,21 @@ export const handler = async (
 ): Promise<CustomAuthorizerResult> => {
   logger.info('Authorizing a user', event.authorizationToken)
 
-  try {
-    const jwtToken = await verifyToken(event.authorizationToken)
+  const jwtToken = await verifyToken(event.authorizationToken)
 
-    logger.info('User was authorized', jwtToken)
+  logger.info('User was authorized', jwtToken)
 
-    return {
-      principalId: jwtToken.sub,
-      policyDocument: {
-        Version: '2012-10-17',
-        Statement: [
-          {
-            Action: 'execute-api:Invoke',
-            Effect: 'Allow',
-            Resource: '*'
-          }
-        ]
-      }
-    }
-  } catch (e) {
-    logger.error('User not authorized', { error: e.message })
-
-    return {
-      principalId: 'user',
-      policyDocument: {
-        Version: '2012-10-17',
-        Statement: [
-          {
-            Action: 'execute-api:Invoke',
-            Effect: 'Deny',
-            Resource: '*'
-          }
-        ]
-      }
+  return {
+    principalId: jwtToken.sub,
+    policyDocument: {
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Action: 'execute-api:Invoke',
+          Effect: 'Allow',
+          Resource: '*'
+        }
+      ]
     }
   }
 }
@@ -61,18 +43,8 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
   const res = await Axios.get(jwksUrl)
 
   const jwks = res.data.keys
-  const signingKeys = jwks
-    .filter(
-      (key) =>
-        key.use === 'sig' &&
-        key.kty === 'RSA' &&
-        key.kid &&
-        ((key.x5c && key.x5c.length) || (key.n && key.e))
-    )
-    .map((key) => {
-      return { kid: key.kid, nbf: key.nbf, publicKey: certToPEM(key.x5c[0]) }
-    })
-  const signingKey = signingKeys.find((key) => key.kid === jwt.header.kid)
+
+  const signingKey = jwks.find((key) => key.kid === jwt.header.kid)
 
   return new Promise((resolve, reject) => {
     verify(token, signingKey.publicKey, (err, decoded) => {

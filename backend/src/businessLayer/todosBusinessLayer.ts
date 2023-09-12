@@ -1,8 +1,8 @@
 import uuid from 'uuid'
 
-import { CreateTodoRequest } from '../requests/CreateTodoRequest';
-import { UpdateTodoRequest } from '../requests/UpdateTodoRequest';
-import { TodoDataLayer } from '../dataLayer/todosDataLayer';
+import { CreateTodoRequest } from '../requests/CreateTodoRequest'
+import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
+import { TodoDataLayer } from '../dataLayer/todosDataLayer'
 import { TodoItem, TodoItemDTO } from '../models/TodoItem'
 import { createLogger } from '../utils/logger'
 import * as utils from '../lambda/utils'
@@ -11,78 +11,87 @@ const todoDataLayer = new TodoDataLayer()
 const logger = createLogger('todos')
 
 export async function getAllTodos(event): Promise<TodoItem[]> {
+  try {
+    logger.info('getAllTodos start =>>>>', { event })
 
-  logger.info('getAllTodos', { event })
-
-  const todoItemDTO: TodoItemDTO = {
-    userId: utils.getUserId(event)
+    const todoItemDTO: TodoItemDTO = {
+      userId: utils.getUserId(event)
+    }
+    logger.info('getAllTodos succesfully <=====', { event })
+    return todoDataLayer.getAllTodos(todoItemDTO)
+  } catch (err) {
+    logger.info('getAllTodos error', { err })
   }
-
-  return todoDataLayer.getAllTodos(todoItemDTO)
-
 }
 
 export async function createTodo(event): Promise<TodoItem> {
+  try {
+    logger.info('createTodo start =>>>>', { event })
 
-  logger.info('createTodo', { event })
+    const parsedTodo: CreateTodoRequest = JSON.parse(event.body)
 
-  const parsedTodo: CreateTodoRequest = JSON.parse(event.body)
-
-  const todoItemTDO: TodoItemDTO = {
-    userId: utils.getUserId(event),
-    todoId: uuid.v4(),
-    createdAt: new Date().toDateString(),
-    name: parsedTodo.name,
-    dueDate: parsedTodo.dueDate,
-    done: false,
-    attachmentUrl: '',
+    const todoItemTDO: TodoItemDTO = {
+      userId: utils.getUserId(event),
+      todoId: uuid.v4(),
+      createdAt: new Date().toDateString(),
+      name: parsedTodo.name,
+      dueDate: parsedTodo.dueDate,
+      done: false,
+      attachmentUrl: ''
+    }
+    logger.info('createTodo succesfully <=====', { event })
+    return todoDataLayer.createTodo(todoItemTDO)
+  } catch (e) {
+    logger.info('createTodo error', { e })
   }
-
-  return todoDataLayer.createTodo(todoItemTDO)
-
 }
 
 export async function deleteTodo(event): Promise<String> {
+  try {
+    logger.info('deleteTodo start =>>>', { event })
 
-  logger.info('deleteTodo', { event })
-
-  const todoItemTDO: TodoItemDTO = {
-    userId: utils.getUserId(event),
-    todoId: event.pathParameters.todoId
+    const todoItemTDO: TodoItemDTO = {
+      userId: utils.getUserId(event),
+      todoId: event.pathParameters.todoId
+    }
+    logger.info('deleteTodo succesfully <====', { event })
+    return todoDataLayer.deleteTodo(todoItemTDO)
+  } catch (e) {
+    logger.error('deleteTodo error', { e })
   }
-
-  return todoDataLayer.deleteTodo(todoItemTDO)
-
 }
 
 export async function updateTodo(event): Promise<String> {
+  try {
+    logger.info('updateTodo', { event })
 
-  logger.info('updateTodo', { event })
+    const todo: UpdateTodoRequest = JSON.parse(event.body)
 
-  const todo: UpdateTodoRequest = JSON.parse(event.body)
-
-  const todoItemTDO: TodoItemDTO = {
-    userId: utils.getUserId(event),
-    todoId: event.pathParameters.todoId,
-    name: todo.name,
-    dueDate: todo.dueDate,
-    done: todo.done
+    const todoItemTDO: TodoItemDTO = {
+      userId: utils.getUserId(event),
+      todoId: event.pathParameters.todoId,
+      name: todo.name,
+      dueDate: todo.dueDate,
+      done: todo.done
+    }
+    logger.info('updateTodo successfully', { event })
+    return todoDataLayer.updateTodo(todoItemTDO)
+  } catch (e) {
+    logger.error('updateTodo error', { e })
   }
-
-  return todoDataLayer.updateTodo(todoItemTDO)
-
 }
 
 export async function generateUploadUrl(event): Promise<String> {
+  try {
+    logger.info('generateUploadUrl', { event })
 
-  logger.info('generateUploadUrl', { event })
-
-  const todoItemTDO: TodoItemDTO = {
-    userId: utils.getUserId(event),
-    todoId: event.pathParameters.todoId
+    const todoItemTDO: TodoItemDTO = {
+      userId: utils.getUserId(event),
+      todoId: event.pathParameters.todoId
+    }
+    logger.info('generateUploadUrl successfully', { event })
+    return todoDataLayer.generateUploadUrl(todoItemTDO)
+  } catch (e) {
+    logger.error('generateUploadUrl error', { e })
   }
-
-  return todoDataLayer.generateUploadUrl(todoItemTDO)
-
 }
-
